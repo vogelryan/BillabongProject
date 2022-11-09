@@ -24,7 +24,8 @@ end
 #struct to define a river
 mutable struct River
     Rivername::String    
-    rocktype::String
+    ErosionCoef::Float64
+    CenterVelocity::Float64
     DownStreamStart::RiverPoint
     UpStreamStart::RiverPoint
     width::Union{Float64,Int64}

@@ -1,6 +1,8 @@
+include("CSVCord.jl")
+
 #initiation function of the River struct, starts with one point
-function River(Rivername::String, point::RiverPoint, rocktype::String, width::Union{Float64,Int64})
-    r = River(Rivername, rocktype, point, point, width, 1, Billabong[])
+function River(Rivername::String, point::RiverPoint, rocktype::Float64, width::Union{Float64,Int64}, Velocity::Float64)
+    r = River(Rivername, rocktype, Velocity, point, point, width, 1, Billabong[])
     return r
 end
 
@@ -83,18 +85,28 @@ function plotPoints(River::River)
 end
 
 #function to read in a csv file and create a river from it, defult up stream, but can be downstream 
-function CSVtoRiver(filename::String, zone::Int64, north::Bool, Rivername::String, rocktype::String, width::Union{Float64,Int64}, upstream = true)
+function CSVtoRiver(filename::String, zone::Int64, north::Bool, Rivername::String, ErosionCoef::Float64, Velocity::Float64, width::Union{Float64,Int64}, upstream = true)
 
     #reading in the csv file and converting to a Utm
     data = ConvertToUTM(filename, zone, north)
 
     #creating the first point
-    r = River(Rivername, RiverPoint(Tuple(data[1,:]), nothing, nothing), rocktype, width)
+    r = River(Rivername, RiverPoint(Tuple(data[1,:]), nothing, nothing), ErosionCoef, width, Velocity)
 
     #adding the rest of the points
     for i in 2:size(data)[1]
         addEndpoint!(r, Tuple(data[i,:]), upstream)
     end
     return r
+end
+
+function updateLinkedList(river::River)
+    p = river.DownStreamStart.Upstream
+    while p.Upstream !== nothing
+        p.radius = radius_of_circle(p.Downstream.cord, p.cord, p.Upstream.cord)
+        p.curvature = 1/p.radius
+        p.center = center_of_circle(p.Downstream.cord, p.cord, p.Upstream.cord)
+        p = p.Upstream
+    end
 end
 
