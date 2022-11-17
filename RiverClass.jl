@@ -30,73 +30,32 @@ function printPoints(River::River)
     end
 end
 
-#plots the points in River and the radius of the circles
-function plotPoints(River::River)
-    x = []
-    y = []
-    rad = []
-    r = River.DownStreamStart
-    while true
-        push!(x, r.cord[1])
-        push!(y, r.cord[2])
-        #=if r.radius != NaN
-            push!(rad, r.radius)
-        else
-            push!(rad, 0)
-        end
-        =#
-        if r.Upstream === nothing
-            break
-        end
-        r = r.Upstream
-    end
-
-    #scaling for graphing purposus
-    xx = x[1]
-    yy = y[1]
-    for i in eachindex(x)
-        x[i] = x[i] - xx
-        y[i] = y[i] - yy
-    end
-    plot(x, y, seriestype = :scatter, label = "points")
-
-    #interpolating the points
-    t = 0:length(x)-1
-    A = hcat(x,y)
-    itp = Interpolations.scale(interpolate(A, (BSpline(Cubic(Natural(OnGrid()))), NoInterp())), t, 1:2)
-    tfine = 0:.01:length(x)-1
-    xs, ys = [itp(t,1) for t in tfine], [itp(t,2) for t in tfine]
-    plot!(xs, ys, label = "Interpolation")
-
-    #making scales be the Same
-    xlims = (minimum(x), maximum(x))
-    ylims = (minimum(y), maximum(y))
-
-    min = minimum([xlims[1], ylims[1]]) - abs(minimum([xlims[1], ylims[1]]) * .1)
-    max = maximum([xlims[2], ylims[2]]) + abs(maximum([xlims[2], ylims[2]]) * .1)
-    plot!(xlims = (min, max), ylims = (min, max))
-
-    #axis labels
-    xlabel!("meters")
-    ylabel!("meters")
+#function to read in a csv file and create a river from it, defult up stream, but can be downstream, north is in norther hemispere, upstream indecates points go from down to upstream
+function CSVtoRiver(filename::String, UTMZone::Int64, north::Bool, Rivername::String, ErosionCoef::Float64, Velocity::Float64, RiverWidth::Union{Float64,Int64}, upstream = true)
+#=
+    filename: name of the csv file
+    UTMZone: UTM zone of the data
+    north: true if in northern hemispere
+    Rivername: name of the river
+    ErosionCoef: erosion coefficient
+    Velocity: velocity of the river
+    RiverWidth: width of the river
+    upstream: true if the points go from downstream to upstream
     
-    #saving the figure
-    savefig(string(River.Rivername, ".png"))
-end
-
-#function to read in a csv file and create a river from it, defult up stream, but can be downstream 
-function CSVtoRiver(filename::String, zone::Int64, north::Bool, Rivername::String, ErosionCoef::Float64, Velocity::Float64, width::Union{Float64,Int64}, upstream = true)
+    returns a river struct
+=#
 
     #reading in the csv file and converting to a Utm
-    data = ConvertToUTM(filename, zone, north)
+    data = ConvertToUTM(filename, UTMZone, north)
 
     #creating the first point
-    r = River(Rivername, RiverPoint(Tuple(data[1,:]), nothing, nothing), ErosionCoef, width, Velocity)
+    r = River(Rivername, RiverPoint(Tuple(data[1,:]), nothing, nothing), ErosionCoef, RiverWidth, Velocity)
 
     #adding the rest of the points
     for i in 2:size(data)[1]
         addEndpoint!(r, Tuple(data[i,:]), upstream)
     end
+
     return r
 end
 
@@ -110,3 +69,52 @@ function updateLinkedList(river::River)
     end
 end
 
+#plots the points in Rivers
+function PlotRiver(River::River, version::Union{Int64, Nothing} = nothing)
+    x = []
+    y = []
+    r = River.DownStreamStart.Upstream
+    while r.Upstream.Upstream !== nothing
+        push!(x, r.cord[1])
+        push!(y, r.cord[2])
+        r = r.Upstream
+    end
+
+    xx = River.DownStreamStart.cord[1]
+    yy = River.DownStreamStart.cord[2]
+
+    for i in eachindex(x)
+        x[i] = x[i] - xx
+        y[i] = y[i] - yy
+    end
+
+    P = plot(x, y, seriestype = :scatter, label = "points")
+
+    #interpolating the points
+    t = 0:length(x)-1
+    A = hcat(x,y)
+    itp = Interpolations.scale(interpolate(A, (BSpline(Cubic(Natural(OnGrid()))), NoInterp())), t, 1:2)
+    tfine = 0:.01:length(x)-1
+    xs, ys = [itp(t,1) for t in tfine], [itp(t,2) for t in tfine]
+    plot!(xs, ys, label = "Interpolation")
+
+    #making scales be the Same
+    difx = maximum(x) - minimum(x)
+    dify = maximum(y) - minimum(y)
+
+    dif = maximum([difx, dify])
+
+    xlims = (minimum(x)- dif*0.1, maximum(x)+ dif*0.1)
+    ylims = (minimum(y) - dif*0.1, maximum(y)+dif*0.1)
+
+    plot!(xlims = xlims, ylims = ylims)
+
+    #axis labels
+    xlabel!("meters")
+    ylabel!("meters")
+    
+    #saving the figure
+    #savefig(string(River.Rivername, version, ".png"))
+
+    return P
+end

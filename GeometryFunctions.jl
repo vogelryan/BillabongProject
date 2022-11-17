@@ -27,10 +27,10 @@ function distance(point1::Tuple, point2::Tuple)
 end
 
 
-#gives the cos(theta) and sin(theta)
-function FindCosSin(point::RiverPoint)
-    dx = point.Upstream.cord[1] - point.cord[1]
-    dy = point.Upstream.cord[2] - point.cord[2]
-    d = sqrt(dx^2 + dy^2)
+#gives the cos(theta) and sin(theta_)
+function Findcxcy(point::RiverPoint)
+    dx = point.cord[1] - point.center[1]
+    dy = -point.center[2] + point.cord[2]
+    d = distance(point.Upstream.cord, point.cord)
     return dx/d, dy/d
 end
