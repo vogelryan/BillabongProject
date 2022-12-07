@@ -16,7 +16,20 @@ include("TimeUpdate.jl")
 #NTimeSteps(Sac, 30000)
 
 
+Esc = CSVtoRiver("CB.csv", 12, true, "Escalante", 1.0E-8, 42293560.32, 10.0)
+#p1 = PlotRiver(Esc, "red")
+#NTimeSteps(Esc, 2000, .01, true)
+#p2 = PlotRiver(Esc, "blue")
+
+#overlay plots
+#plot(p2)
+#plot!(p1)
 
 
-Esc = CSVtoRiver("Escalante.csv", 12, true, "Escalante", 1.8E-5, 1.34112, 10.0)
-NTimeSteps(Esc, 3000000, 1, true)
+
+
+
+
+
+
+

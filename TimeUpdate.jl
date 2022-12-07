@@ -2,7 +2,7 @@
 
 #timestep is in years
 
-function update(river::River, timestep::Int64)
+function update(river::River, timestep::Float64)
     p = river.DownStreamStart.Upstream
     while p.Upstream.Upstream !== nothing
         c,s = Findcxcy(p)
@@ -20,10 +20,10 @@ function update(river::River, timestep::Int64)
 end
 
 #function to update the river for a given number of time steps, defult timestep is 1 unit of time, can also plot if you want
-function NTimeSteps(river::River, n::Int64, timestep::Int64 = 1, plotGIF::Bool = false)
+function NTimeSteps(river::River, n::Int64, timestep::Float64 = 1, plotGIF::Bool = false)
 
     #how often wee save plot
-    num = floor(n/100)
+    num = floor(n/600)
 
     #creating the gif
     if plotGIF
@@ -42,6 +42,6 @@ function NTimeSteps(river::River, n::Int64, timestep::Int64 = 1, plotGIF::Bool =
         end
     end
     if plotGIF
-        gif(a, string(river.Rivername,".gif"), fps = 10)
+        gif(a, string(river.Rivername,".gif"), fps = 60)
     end
 end

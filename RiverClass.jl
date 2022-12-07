@@ -69,8 +69,8 @@ function updateLinkedList(river::River)
     end
 end
 
-#plots the points in Rivers
-function PlotRiver(River::River, version::Union{Int64, Nothing} = nothing)
+#plots the points in Rivers, Color = Color of grapg
+function PlotRiver(River::River, Color = "Blue")
     x = []
     y = []
     r = River.DownStreamStart.Upstream
@@ -88,7 +88,7 @@ function PlotRiver(River::River, version::Union{Int64, Nothing} = nothing)
         y[i] = y[i] - yy
     end
 
-    P = plot(x, y, seriestype = :scatter, label = "points")
+    P = plot!(x, y, seriestype = :scatter, label = "points", color = Color, markersize = .1, markershape = :x)
 
     #interpolating the points
     t = 0:length(x)-1
@@ -96,7 +96,7 @@ function PlotRiver(River::River, version::Union{Int64, Nothing} = nothing)
     itp = Interpolations.scale(interpolate(A, (BSpline(Cubic(Natural(OnGrid()))), NoInterp())), t, 1:2)
     tfine = 0:.01:length(x)-1
     xs, ys = [itp(t,1) for t in tfine], [itp(t,2) for t in tfine]
-    plot!(xs, ys, label = "Interpolation")
+    plot!(xs, ys, label = "Interpolation", color = Color)
 
     #making scales be the Same
     difx = maximum(x) - minimum(x)
